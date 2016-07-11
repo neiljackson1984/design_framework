@@ -173,26 +173,27 @@ if(array_key_exists("source", $options))
 	{
 		$solidworksOutputFilePath = str_replace("<id>",$parameterSetId,$options["solidworksOutputFile"]);
 		
-	} else
-	{
-		$solidworksOutputFilePath = "parameters-" . $parameterSetId . ".solidworksEquations";
-	} 
-	$solidworksFileOutputStream = fopen($solidworksOutputFilePath,'w');
-	toSldWorksEquationSyntax($variablesToExport);
-	fclose($solidworksFileOutputStream);
-	
+		// // // // } else
+		// // // // {
+			// // // // $solidworksOutputFilePath = "parameters-" . $parameterSetId . ".solidworksEquations";
+		// // // // } 
+		$solidworksFileOutputStream = fopen($solidworksOutputFilePath,'w');
+		toSldWorksEquationSyntax($variablesToExport);
+		fclose($solidworksFileOutputStream);
+	}	
 	if(array_key_exists("jsonOutputFile", $options))
 	{
 		$jsonOutputFilePath = str_replace("<id>",$parameterSetId,$options["jsonOutputFile"]);
-	} else
-	{
-		$jsonOutputFilePath = "parameters-" . $parameterSetId . ".json";
-	} 
-	file_put_contents(
-		$jsonOutputFilePath,
-		//json_encode($variablesToExport,JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
-		json_encode(object_to_array($variablesToExport),JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES) //2016-04-30: wrapped object_to_array here to allow custom classes that implement ItteratorAggregate to be correctly encoded to json.
-	);
+		// // // // } else
+		// // // // {
+			// // // // $jsonOutputFilePath = "parameters-" . $parameterSetId . ".json";
+		// // // // } 
+		file_put_contents(
+			$jsonOutputFilePath,
+			//json_encode($variablesToExport,JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
+			json_encode(object_to_array($variablesToExport),JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES) //2016-04-30: wrapped object_to_array here to allow custom classes that implement ItteratorAggregate to be correctly encoded to json.
+		);
+	}
 	
 }
 
