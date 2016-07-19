@@ -138,6 +138,8 @@ function setParameterSetId($x)
 $options = getopt("", ["source:","solidworksOutputFile:","jsonOutputFile:"] );
 if(array_key_exists("source", $options))
 {
+	//suppress error reporting for warnings, because the source script, the way I write it, tends to generates a lot of the warnings: 'creating default object from empty value', which clutter up the output.
+	error_reporting(error_reporting() & ~E_WARNING);
 	include $options["source"];
 } else
 {
