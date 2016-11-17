@@ -20,6 +20,7 @@ $parameterSetId = "UNIDENTIFIED";
 $jsonOutputFilePath = "something";
 $solidworksOutputFilePath = "something";
 $usageMessage = "nothing";
+$php_errormsg = "nothing";
 
 $initialNames = array_keys($GLOBALS);
 }
