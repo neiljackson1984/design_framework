@@ -1,2 +1,4 @@
+equation_processor =design_framework/equationProcessor.php
+
 default:
-	php equationProcessor.php --source="../equations.php" --jsonOutputFile="C:/solidworks_pdm_cache_workingCopy/parameters-<id>.json" --solidworksOutputFile="C:/solidworks_pdm_cache_workingCopy/parameters-<id>.solidworksEquations"
+	php ${equation_processor} --source="./equations.php" --jsonOutputFile="./parameters-<id>.json" --solidworksOutputFile="./parameters-<id>.solidworksEquations"
