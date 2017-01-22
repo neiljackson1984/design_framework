@@ -356,12 +356,13 @@ function updateClassInstances($value, $name="")
 	elseif( is_object($value) )
 	{
 		$className = get_class($value);
-		echo "now updating instance $name of class $className." . "\n";
+		
 		if(array_key_exists($className, $prototypeModels))
 		{	
 			$prototypeFile = $prototypeModels[$className];
 			$source = $prototypeFile;
 			$destination = $classInstancesPath . DIRECTORY_SEPARATOR . $name . "." . pathinfo($prototypeFile, PATHINFO_EXTENSION);
+			echo "now updating instance $name of class $className." . "\n";
 			echo "\tnow copying $source to $destination\n";
 			copy($source, $destination);
 		}
