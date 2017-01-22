@@ -21,6 +21,8 @@ $jsonOutputFilePath = "something";
 $solidworksOutputFilePath = "something";
 $usageMessage = "nothing";
 $php_errormsg = "nothing";
+$prototypesPath = "something";
+$updateClassInstances = false;
 
 $initialNames = array_keys($GLOBALS);
 }
@@ -134,11 +136,15 @@ function setParameterSetId($x)
 	$parameterSetId = $x;
 }
 
+
+$options = getopt("", ["source:","solidworksOutputFile:","jsonOutputFile:","prototypesPath:","updateClassInstances:","classInstancesPath:"] );
 //User definitions go here:
-	
-$options = getopt("", ["source:","solidworksOutputFile:","jsonOutputFile:"] );
+// prototypesPath	-- this is the path that contains the prototype solidworks files (sldprt and sldasm files whose filenames are the same as class names)
+// updateClassInstances -- iff set to true, then we will try to copy the prototype files to the classInstancesPath folder, renaming with the instance name.
+
 if(array_key_exists("source", $options))
 {
+
 	//suppress error reporting for warnings, because the source script, the way I write it, tends to generates a lot of the warnings: 'creating default object from empty value', which clutter up the output.
 	error_reporting(error_reporting() & ~E_WARNING);
 	include $options["source"];
@@ -197,6 +203,47 @@ if(array_key_exists("source", $options))
 			json_encode(object_to_array($variablesToExport),JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES) //2016-04-30: wrapped object_to_array here to allow custom classes that implement ItteratorAggregate to be correctly encoded to json.
 		);
 	}
+	if(array_key_exists("updateClassInstances",$options) && $options["updateClassInstances"] == "true")
+	{
+		if(array_key_exists("prototypesPath",$options))
+		{
+			$prototypesPath = $options["prototypesPath"];
+		} else
+		{
+			$prototypesPath = dirname(realpath($options["source"])) . DIRECTORY_SEPARATOR . "prototypes"; //DEFAULT prototypesPath
+			//echo "protoypesPath: " . $prototypesPath . "\n\n";
+		}
+
+		if(array_key_exists("classInstancesPath",$options))
+		{
+			$classInstancesPath = $options["classInstancesPath"];
+		} else
+		{
+			$classInstancesPath = dirname(realpath($options["source"])) ; //DEFAULT classInstancesPath
+			//echo "protoypesPath: " . $prototypesPath . "\n\n";
+		}
+		$prototypeModels = []; //an array whose keys are the class names, and whose values are the fully qualified path to sldworks files
+		foreach(scandir($prototypesPath) as $filename)
+		{
+			$thisFile = $prototypesPath . DIRECTORY_SEPARATOR . $filename;
+			if(
+				is_file($thisFile) 
+				&&  
+				in_array( 
+					strtolower(pathinfo($thisFile, PATHINFO_EXTENSION)), 
+					["sldprt", "sldasm"]
+				)
+			) //if $thisFile is a file (as opposed to a folder) and has a file extension indicating that it is either a solidworks part or a solidworks assembly...
+			{
+				$prototypeModels[pathinfo($thisFile, PATHINFO_FILENAME)] = realpath($thisFile);
+			}
+		}
+		//might consider checking whether there is a sldprt and an sldasm with the same file name, to issue a warning.
+		echo "prototypeModels: " . "\n"; print_r($prototypeModels);
+		//print_r($variablesToExport);
+		updateClassInstances($variablesToExport);
+	}
+	
 	
 }
 
@@ -262,6 +309,7 @@ evalulates to the string containing the following lines of text:
 
 */
 
+
 function toSldWorksEquationSyntax($value, $name="")
 {
 	global $solidworksFileOutputStream;
@@ -290,15 +338,46 @@ function toSldWorksEquationSyntax($value, $name="")
 	}
 }
 
+
+function updateClassInstances($value, $name="")
+{
+	global $prototypeModels, $classInstancesPath ;
+	if( is_array($value) )
+	{
+		$prefix = ($name === "" ? "" : $name . "."); //taking an empty string as a default name allows us to use this function to export an array of globals, without any prefix.
+		$keys = array_keys($value);
+		sort($keys);
+		//fwrite(STDERR, "found within $name : \n" . print_r($keys,true). "\n");
+		foreach($keys as $key)
+		{
+			updateClassInstances($value[$key], $prefix . $key);
+		}
+	}
+	elseif( is_object($value) )
+	{
+		$className = get_class($value);
+		echo "now updating instance $name of class $className." . "\n";
+		if(array_key_exists($className, $prototypeModels))
+		{	
+			$prototypeFile = $prototypeModels[$className];
+			$source = $prototypeFile;
+			$destination = $classInstancesPath . DIRECTORY_SEPARATOR . $name . "." . pathinfo($prototypeFile, PATHINFO_EXTENSION);
+			echo "\tnow copying $source to $destination\n";
+			copy($source, $destination);
+		}
+		updateClassInstances(object_to_array($value,false), $name);
+	}
+}
+
 //copied from http://stackoverflow.com/questions/4345554/convert-php-object-to-associative-array :
-function object_to_array($data)
+function object_to_array($data,$recursive=true)
 {
     if (is_array($data) || is_object($data))
     {
         $result = array();
         foreach ($data as $key => $value)
         {
-            $result[$key] = object_to_array($value);
+            $result[$key] = ($recursive ? object_to_array($value) : $value);
         }
         return $result;
     }
