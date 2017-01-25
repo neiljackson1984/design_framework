@@ -197,6 +197,7 @@ if(array_key_exists("source", $options))
 		// // // // {
 			// // // // $jsonOutputFilePath = "parameters-" . $parameterSetId . ".json";
 		// // // // } 
+		//print_r($variablesToExport);
 		file_put_contents(
 			$jsonOutputFilePath,
 			//json_encode($variablesToExport,JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
@@ -382,7 +383,10 @@ function object_to_array($data,$recursive=true)
         }
         return $result;
     }
-    return $data;
+	
+	if(is_nan($data)){return "NAN";}else{ return $data;}; //THIS IS A VERY HACKY WAY TO DEAL WITh the json exporting balking when encountering a NAN. (not a number) (e.g. sqrt(-1) returns NAN).
+	
+
 }
 
 ?>
