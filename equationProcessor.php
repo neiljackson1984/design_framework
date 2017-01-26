@@ -170,6 +170,8 @@ if(array_key_exists("source", $options))
 			);
 	*/
 	
+	$weGeneratedAJsonFile = false; //this will be set to true later if we actual do generate a json file
+	
 	$variableNamesToExport = array_diff(array_keys($GLOBALS), $initialNames );
 	$variablesToExport = [];
 	foreach ($variableNamesToExport as $name)
@@ -203,6 +205,7 @@ if(array_key_exists("source", $options))
 			//json_encode($variablesToExport,JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
 			json_encode(object_to_array($variablesToExport),JSON_HEX_TAG+JSON_HEX_AMP+JSON_HEX_APOS+JSON_HEX_QUOT+JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES) //2016-04-30: wrapped object_to_array here to allow custom classes that implement ItteratorAggregate to be correctly encoded to json.
 		);
+		$weGeneratedAJsonFile = true;
 	}
 	if(array_key_exists("updateClassInstances",$options) && $options["updateClassInstances"] == "true")
 	{
@@ -243,6 +246,11 @@ if(array_key_exists("source", $options))
 		echo "prototypeModels: " . "\n"; print_r($prototypeModels);
 		//print_r($variablesToExport);
 		updateClassInstances($variablesToExport);
+		if($weGeneratedAJsonFile)
+		{
+			mkdir($classInstancesPath, 0777, true); //make the destination directory if it does not already exist.
+			copy($jsonOutputFilePath, $classInstancesPath . DIRECTORY_SEPARATOR . basename($jsonOutputFilePath)); //this is a bit of a hack to help prototypes whose instances will expect to see the parameters file in their own folder in case we are not copying the instance files into the same folder as the parameters file; we copy the parameters file into the folder where the class instances are being copied. 
+		}
 	}
 	
 	
@@ -365,6 +373,7 @@ function updateClassInstances($value, $name="")
 			$destination = $classInstancesPath . DIRECTORY_SEPARATOR . $name . "." . pathinfo($prototypeFile, PATHINFO_EXTENSION);
 			echo "now updating instance $name of class $className." . "\n";
 			echo "\tnow copying $source to $destination\n";
+			mkdir(dirname($destination), 0777, true); //make the destination directory if it does not already exist.
 			copy($source, $destination);
 		}
 		updateClassInstances(object_to_array($value,false), $name);
