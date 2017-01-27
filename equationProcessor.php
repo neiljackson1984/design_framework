@@ -393,7 +393,7 @@ function object_to_array($data,$recursive=true)
         return $result;
     }
 	
-	if(is_nan($data)){return "NAN";}else{ return $data;}; //THIS IS A VERY HACKY WAY TO DEAL WITh the json exporting balking when encountering a NAN. (not a number) (e.g. sqrt(-1) returns NAN).
+	if(is_numeric($data) && is_nan($data)){return "NAN";}else{ return $data;}; //THIS IS A VERY HACKY WAY TO DEAL WITh the json exporting balking when encountering a NAN. (not a number) (e.g. sqrt(-1) returns NAN).
 	
 
 }
