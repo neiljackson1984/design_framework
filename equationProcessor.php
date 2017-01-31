@@ -245,7 +245,11 @@ if(array_key_exists("source", $options))
 		//might consider checking whether there is a sldprt and an sldasm with the same file name, to issue a warning.
 		echo "prototypeModels: " . "\n"; print_r($prototypeModels);
 		//print_r($variablesToExport);
+		$classInstances = [];
 		updateClassInstances($variablesToExport);
+		array_map("sort",$classInstances); //sort each sublist of names
+		ksort($classInstances); //sort the array by key name
+		print_r($classInstances);
 		if($weGeneratedAJsonFile)
 		{
 			mkdir($classInstancesPath, 0777, true); //make the destination directory if it does not already exist.
@@ -350,7 +354,7 @@ function toSldWorksEquationSyntax($value, $name="")
 
 function updateClassInstances($value, $name="")
 {
-	global $prototypeModels, $classInstancesPath ;
+	global $prototypeModels, $classInstancesPath, $classInstances ;
 	if( is_array($value) )
 	{
 		$prefix = ($name === "" ? "" : $name . "."); //taking an empty string as a default name allows us to use this function to export an array of globals, without any prefix.
@@ -366,6 +370,11 @@ function updateClassInstances($value, $name="")
 	{
 		$className = get_class($value);
 		
+		if (!array_key_exists($className, $classInstances)) // inititalize the array element if we have not yet come across any instances of this class.
+		{
+			$classInstances[$className] = []; 
+		}
+		$classInstances[$className][] =  $name;
 		if(array_key_exists($className, $prototypeModels))
 		{	
 			$prototypeFile = $prototypeModels[$className];
