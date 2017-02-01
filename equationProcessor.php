@@ -21,7 +21,7 @@ $jsonOutputFilePath = "something";
 $solidworksOutputFilePath = "something";
 $usageMessage = "nothing";
 $php_errormsg = "nothing";
-$prototypesPath = "something";
+$prototypesPath = "";
 $updateClassInstances = false;
 
 $initialNames = array_keys($GLOBALS);
@@ -207,25 +207,28 @@ if(array_key_exists("source", $options))
 		);
 		$weGeneratedAJsonFile = true;
 	}
+	
+	if(array_key_exists("prototypesPath",$options))
+	{
+		$prototypesPath = $options["prototypesPath"];
+	} else
+	{
+		$prototypesPath = dirname(realpath($options["source"])) . DIRECTORY_SEPARATOR . "prototypes"; //DEFAULT prototypesPath
+		//echo "protoypesPath: " . $prototypesPath . "\n\n";
+	}
+
+	if(array_key_exists("classInstancesPath",$options))
+	{
+		$classInstancesPath = $options["classInstancesPath"];
+	} else
+	{
+		$classInstancesPath = dirname(realpath($options["source"])) ; //DEFAULT classInstancesPath
+		//echo "protoypesPath: " . $prototypesPath . "\n\n";
+	}
+	
 	if(array_key_exists("updateClassInstances",$options) && $options["updateClassInstances"] == "true")
 	{
-		if(array_key_exists("prototypesPath",$options))
-		{
-			$prototypesPath = $options["prototypesPath"];
-		} else
-		{
-			$prototypesPath = dirname(realpath($options["source"])) . DIRECTORY_SEPARATOR . "prototypes"; //DEFAULT prototypesPath
-			//echo "protoypesPath: " . $prototypesPath . "\n\n";
-		}
 
-		if(array_key_exists("classInstancesPath",$options))
-		{
-			$classInstancesPath = $options["classInstancesPath"];
-		} else
-		{
-			$classInstancesPath = dirname(realpath($options["source"])) ; //DEFAULT classInstancesPath
-			//echo "protoypesPath: " . $prototypesPath . "\n\n";
-		}
 		$prototypeModels = []; //an array whose keys are the class names, and whose values are the fully qualified path to sldworks files
 		foreach(scandir($prototypesPath) as $filename)
 		{
@@ -250,11 +253,31 @@ if(array_key_exists("source", $options))
 		array_map("sort",$classInstances); //sort each sublist of names
 		ksort($classInstances); //sort the array by key name
 		print_r($classInstances);
-		if($weGeneratedAJsonFile)
+
+	}
+	
+	if($weGeneratedAJsonFile)
+	{
+		
+		//making the presence of the 'prototypesPath' command line option be the thing that determines whether we put 
+		// a copy of the paramters file in the $prototypesPath is a bit sloppy.  Same for the classInstancesPath.
+		// The goal is that even when we are not updating the class instance files, we want to put a copy of the parameters file in the classInstances folder,
+		// and I did not want to clutter up the command line syntax with an explicit option to enable copying the parameters file.
+		
+		if(array_key_exists("prototypesPath",$options)) 
+		{
+			mkdir($prototypesPath, 0777, true); //make the destination directory if it does not already exist.
+			copy($jsonOutputFilePath, $prototypesPath . DIRECTORY_SEPARATOR . basename($jsonOutputFilePath)); //this is a bit of a hack to help prototypes whose instances will expect to see the parameters file in their own folder in case we are not copying the instance files into the same folder as the parameters file; we copy the parameters file into the folder where the class instances are being copied. 
+		
+		}
+
+		if(array_key_exists("classInstancesPath",$options)) //making the presence of the 'classInstancesPath' command line option be the thing that determines whether we put a copy of the paramters file in the $classInstancesPath is a bit of a hack
 		{
 			mkdir($classInstancesPath, 0777, true); //make the destination directory if it does not already exist.
 			copy($jsonOutputFilePath, $classInstancesPath . DIRECTORY_SEPARATOR . basename($jsonOutputFilePath)); //this is a bit of a hack to help prototypes whose instances will expect to see the parameters file in their own folder in case we are not copying the instance files into the same folder as the parameters file; we copy the parameters file into the folder where the class instances are being copied. 
 		}
+		
+		
 	}
 	
 	
