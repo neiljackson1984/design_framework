@@ -23,7 +23,7 @@ $usageMessage = "nothing";
 $php_errormsg = "nothing";
 $prototypesPath = "";
 $updateClassInstances = false;
-
+$weGeneratedAJsonFile = false;
 $initialNames = array_keys($GLOBALS);
 }
 
