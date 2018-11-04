@@ -24,10 +24,14 @@ $php_errormsg = "nothing";
 $prototypesPath = "";
 $updateClassInstances = false;
 $weGeneratedAJsonFile = false;
-$initialNames = array_keys($GLOBALS);
+omitExistingVariables();
 }
 
-
+function omitExistingVariables()
+{
+    global $initialNames;
+    $initialNames = array_keys($GLOBALS);
+}
 
 
 
@@ -102,6 +106,14 @@ abstract class properties Implements IteratorAggregate
     return call_user_func( array($this,'get_'.(string)$property) );
   }
   
+  public function __set( $property, $value )
+  {
+    if( ! is_callable( array($this,'set_'.(string)$property) ) )
+      throw new BadPropertyException($this, (string)$property);
+
+    return call_user_func( array($this,'set_'.(string)$property), $value );
+  }
+  
   public function getIterator()
   {
 	  // we will return an iterator that will look like an array whose keys are all the public members of the class and any "get_..." functions.
@@ -125,6 +137,10 @@ abstract class properties Implements IteratorAggregate
 	  return $temp->getIterator();
   }
 
+  public function __construct()
+  {
+      
+  }
 }
 
 
@@ -246,13 +262,13 @@ if(array_key_exists("source", $options))
 			}
 		}
 		//might consider checking whether there is a sldprt and an sldasm with the same file name, to issue a warning.
-		echo "prototypeModels: " . "\n"; print_r($prototypeModels);
+		//echo "prototypeModels: " . "\n"; print_r($prototypeModels);
 		//print_r($variablesToExport);
 		$classInstances = [];
 		updateClassInstances($variablesToExport);
 		array_map("sort",$classInstances); //sort each sublist of names
 		ksort($classInstances); //sort the array by key name
-		print_r($classInstances);
+		//print_r($classInstances);
 
 	}
 	
@@ -403,8 +419,8 @@ function updateClassInstances($value, $name="")
 			$prototypeFile = $prototypeModels[$className];
 			$source = $prototypeFile;
 			$destination = $classInstancesPath . DIRECTORY_SEPARATOR . $name . "." . pathinfo($prototypeFile, PATHINFO_EXTENSION);
-			echo "now updating instance $name of class $className." . "\n";
-			echo "\tnow copying $source to $destination\n";
+			//echo "now updating instance $name of class $className." . "\n";
+			//echo "\tnow copying $source to $destination\n";
 			mkdir(dirname($destination), 0777, true); //make the destination directory if it does not already exist.
 			copy($source, $destination);
 		}
